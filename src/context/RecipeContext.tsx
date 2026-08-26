@@ -10,96 +10,115 @@ import {
   ReactNode,
 } from "react";
 import { Recipe } from "@/lib/types";
-import { defaultRecipes } from "@/lib/recipes";
-
-const STORAGE_KEY = "meal-kit-recipes";
-
-function slugify(name: string) {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "") // skini dijakritike (č, ć, š, ž, đ...)
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-function makeUniqueId(name: string, existing: Recipe[]) {
-  const base = slugify(name) || "recept";
-  let id = base;
-  let counter = 2;
-  while (existing.some((r) => r.id === id)) {
-    id = `${base}-${counter}`;
-    counter += 1;
-  }
-  return id;
-}
+import { RecipeInput } from "@/lib/recipeSerialization";
+import { ADMIN_AUTH_STORAGE_KEY, ADMIN_PASSWORD_HEADER } from "@/lib/adminAuth";
 
 interface RecipeContextValue {
   recipes: Recipe[];
-  addRecipe: (recipe: Omit<Recipe, "id">) => void;
-  updateRecipe: (id: string, patch: Omit<Recipe, "id">) => void;
-  deleteRecipe: (id: string) => void;
-  resetToDefaults: () => void;
+  isLoading: boolean;
+  error: string | null;
+  addRecipe: (recipe: RecipeInput) => Promise<void>;
+  updateRecipe: (id: string, patch: RecipeInput) => Promise<void>;
+  deleteRecipe: (id: string) => Promise<void>;
+  resetToDefaults: () => Promise<void>;
 }
 
 const RecipeContext = createContext<RecipeContextValue | null>(null);
 
+function adminHeaders(): HeadersInit {
+  let password = "";
+  try {
+    password = window.sessionStorage.getItem(ADMIN_AUTH_STORAGE_KEY) ?? "";
+  } catch {
+    // sessionStorage možda nije dostupan
+  }
+  return {
+    "Content-Type": "application/json",
+    [ADMIN_PASSWORD_HEADER]: password,
+  };
+}
+
 export function RecipeProvider({ children }: { children: ReactNode }) {
-  const [recipes, setRecipes] = useState<Recipe[]>(defaultRecipes);
-  const [hydrated, setHydrated] = useState(false);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Učitaj sačuvane recepte iz localStorage nakon mount-a (izbegavamo
-  // hydration mismatch jer localStorage ne postoji na serveru).
-  useEffect(() => {
+  const loadRecipes = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed: Recipe[] = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setRecipes(parsed);
-        }
-      }
+      const res = await fetch("/api/recipes");
+      if (!res.ok) throw new Error("Greška pri učitavanju recepata.");
+      const data: Recipe[] = await res.json();
+      setRecipes(data);
     } catch {
-      // ignoriši neispravne podatke u localStorage
+      setError(
+        "Nije moguće učitati recepte sa servera. Proveri da li baza radi."
+      );
     } finally {
-      setHydrated(true);
+      setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
-    } catch {
-      // localStorage možda nije dostupan (privatni režim, itd.)
-    }
-  }, [recipes, hydrated]);
+    // Namerno: učitavamo recepte sa servera nakon mount-a. loadRecipes
+    // interno postavlja state (recipes/isLoading/error) kad odgovor stigne.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadRecipes();
+  }, [loadRecipes]);
 
-  const addRecipe = useCallback((recipe: Omit<Recipe, "id">) => {
-    setRecipes((prev) => [
-      ...prev,
-      { ...recipe, id: makeUniqueId(recipe.name, prev) },
-    ]);
+  const addRecipe = useCallback(async (recipe: RecipeInput) => {
+    const res = await fetch("/api/recipes", {
+      method: "POST",
+      headers: adminHeaders(),
+      body: JSON.stringify(recipe),
+    });
+    if (!res.ok) throw new Error("Dodavanje recepta nije uspelo.");
+    const created: Recipe = await res.json();
+    setRecipes((prev) => [...prev, created]);
   }, []);
 
-  const updateRecipe = useCallback((id: string, patch: Omit<Recipe, "id">) => {
-    setRecipes((prev) =>
-      prev.map((r) => (r.id === id ? { ...patch, id } : r))
-    );
+  const updateRecipe = useCallback(async (id: string, patch: RecipeInput) => {
+    const res = await fetch(`/api/recipes/${id}`, {
+      method: "PUT",
+      headers: adminHeaders(),
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) throw new Error("Izmena recepta nije uspela.");
+    const updated: Recipe = await res.json();
+    setRecipes((prev) => prev.map((r) => (r.id === id ? updated : r)));
   }, []);
 
-  const deleteRecipe = useCallback((id: string) => {
+  const deleteRecipe = useCallback(async (id: string) => {
+    const res = await fetch(`/api/recipes/${id}`, {
+      method: "DELETE",
+      headers: adminHeaders(),
+    });
+    if (!res.ok) throw new Error("Brisanje recepta nije uspelo.");
     setRecipes((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
-  const resetToDefaults = useCallback(() => {
-    setRecipes(defaultRecipes);
+  const resetToDefaults = useCallback(async () => {
+    const res = await fetch("/api/recipes/reset", {
+      method: "POST",
+      headers: adminHeaders(),
+    });
+    if (!res.ok) throw new Error("Resetovanje menija nije uspelo.");
+    const data: Recipe[] = await res.json();
+    setRecipes(data);
   }, []);
 
   const value = useMemo(
-    () => ({ recipes, addRecipe, updateRecipe, deleteRecipe, resetToDefaults }),
-    [recipes, addRecipe, updateRecipe, deleteRecipe, resetToDefaults]
+    () => ({
+      recipes,
+      isLoading,
+      error,
+      addRecipe,
+      updateRecipe,
+      deleteRecipe,
+      resetToDefaults,
+    }),
+    [recipes, isLoading, error, addRecipe, updateRecipe, deleteRecipe, resetToDefaults]
   );
 
   return (

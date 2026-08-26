@@ -11,7 +11,7 @@ import { useRecipes } from "@/context/RecipeContext";
 export default function MeniPage() {
   const [activeTag, setActiveTag] = useState<Tag | null>(null);
   const { selectedRecipes, plan, isBoxComplete } = useBox();
-  const { recipes } = useRecipes();
+  const { recipes, isLoading, error } = useRecipes();
 
   const filtered = useMemo(
     () =>
@@ -55,7 +55,11 @@ export default function MeniPage() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <p className="py-16 text-center text-zinc-500">Učitavanje menija…</p>
+      ) : error ? (
+        <p className="py-16 text-center text-red-500">{error}</p>
+      ) : filtered.length === 0 ? (
         <p className="py-16 text-center text-zinc-500">
           Nema recepata za izabrani filter.
         </p>

@@ -4,12 +4,10 @@ import { useEffect, useState } from "react";
 import { useRecipes } from "@/context/RecipeContext";
 import { Recipe } from "@/lib/types";
 import RecipeForm from "@/components/RecipeForm";
-
-// NAPOMENA: Ovo je samo osnovna zaštita za prototip, ne prava
-// autentifikacija. Lozinka je vidljiva u izvornom kodu i proverava se
-// na klijentu — ne koristiti ovako u pravoj (produkcionoj) aplikaciji.
-const ADMIN_PASSWORD = "meal-kit-admin";
-const AUTH_KEY = "meal-kit-admin-auth";
+import {
+  ADMIN_PASSWORD,
+  ADMIN_AUTH_STORAGE_KEY,
+} from "@/lib/adminAuth";
 
 function LoginGate({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState("");
@@ -19,7 +17,9 @@ function LoginGate({ onSuccess }: { onSuccess: () => void }) {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
       try {
-        window.sessionStorage.setItem(AUTH_KEY, "true");
+        // Čuvamo samu lozinku (ne samo "true") da bismo je mogli poslati
+        // kao header uz zahteve ka admin API rutama.
+        window.sessionStorage.setItem(ADMIN_AUTH_STORAGE_KEY, password);
       } catch {
         // sessionStorage možda nije dostupan
       }
@@ -59,16 +59,25 @@ function LoginGate({ onSuccess }: { onSuccess: () => void }) {
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [checkedAuth, setCheckedAuth] = useState(false);
-  const { recipes, addRecipe, updateRecipe, deleteRecipe, resetToDefaults } =
-    useRecipes();
+  const {
+    recipes,
+    isLoading,
+    error: loadError,
+    addRecipe,
+    updateRecipe,
+    deleteRecipe,
+    resetToDefaults,
+  } = useRecipes();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
+      const stored = window.sessionStorage.getItem(ADMIN_AUTH_STORAGE_KEY);
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setAuthed(window.sessionStorage.getItem(AUTH_KEY) === "true");
+      setAuthed(stored === ADMIN_PASSWORD);
     } catch {
       // sessionStorage možda nije dostupan
     } finally {
@@ -78,7 +87,7 @@ export default function AdminPage() {
 
   const handleLogout = () => {
     try {
-      window.sessionStorage.removeItem(AUTH_KEY);
+      window.sessionStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
     } catch {
       // ignoriši
     }
@@ -105,9 +114,20 @@ export default function AdminPage() {
       </div>
 
       <div className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-        Izmene se čuvaju samo u ovom browseru (localStorage) — ovo je
-        prototip bez prave baze podataka.
+        Recepti se sada čuvaju u pravoj bazi podataka (SQLite) — izmene su
+        trajne i vidljive svim posetiocima, ne samo u ovom browseru.
       </div>
+
+      {loadError && (
+        <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300">
+          {loadError}
+        </p>
+      )}
+      {actionError && (
+        <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300">
+          {actionError}
+        </p>
+      )}
 
       <div className="mb-6 flex gap-3">
         <button
@@ -120,9 +140,15 @@ export default function AdminPage() {
           {showAddForm ? "Zatvori formu" : "+ Dodaj novi recept"}
         </button>
         <button
-          onClick={() => {
-            if (confirm("Vratiti meni na podrazumevane recepte? Sve izmene će biti izgubljene.")) {
-              resetToDefaults();
+          onClick={async () => {
+            if (!confirm("Vratiti meni na podrazumevane recepte? Sve izmene će biti izgubljene.")) {
+              return;
+            }
+            try {
+              setActionError(null);
+              await resetToDefaults();
+            } catch {
+              setActionError("Resetovanje menija nije uspelo. Pokušaj ponovo.");
             }
           }}
           className="rounded-full border border-zinc-300 px-5 py-2 text-sm font-semibold transition-colors hover:bg-white dark:border-zinc-700 dark:hover:bg-white/10"
@@ -134,72 +160,90 @@ export default function AdminPage() {
       {showAddForm && (
         <div className="mb-8">
           <RecipeForm
-            onSubmit={(data) => {
-              addRecipe(data);
-              setShowAddForm(false);
+            onSubmit={async (data) => {
+              try {
+                setActionError(null);
+                await addRecipe(data);
+                setShowAddForm(false);
+              } catch {
+                setActionError("Dodavanje recepta nije uspelo. Pokušaj ponovo.");
+              }
             }}
             onCancel={() => setShowAddForm(false)}
           />
         </div>
       )}
 
-      <ul className="flex flex-col gap-3">
-        {recipes.map((recipe) =>
-          editingId === recipe.id ? (
-            <li key={recipe.id}>
-              <RecipeForm
-                initial={editingRecipe}
-                onSubmit={(data) => {
-                  updateRecipe(recipe.id, data);
-                  setEditingId(null);
-                }}
-                onCancel={() => setEditingId(null)}
-              />
-            </li>
-          ) : (
-            <li
-              key={recipe.id}
-              className="flex items-center gap-4 rounded-xl border border-black/10 p-3 dark:border-white/10"
-            >
-              <div
-                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-2xl ${recipe.color}`}
+      {isLoading ? (
+        <p className="py-8 text-center text-zinc-500">Učitavanje recepata…</p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {recipes.map((recipe) =>
+            editingId === recipe.id ? (
+              <li key={recipe.id}>
+                <RecipeForm
+                  initial={editingRecipe}
+                  onSubmit={async (data) => {
+                    try {
+                      setActionError(null);
+                      await updateRecipe(recipe.id, data);
+                      setEditingId(null);
+                    } catch {
+                      setActionError("Izmena recepta nije uspela. Pokušaj ponovo.");
+                    }
+                  }}
+                  onCancel={() => setEditingId(null)}
+                />
+              </li>
+            ) : (
+              <li
+                key={recipe.id}
+                className="flex items-center gap-4 rounded-xl border border-black/10 p-3 dark:border-white/10"
               >
-                {recipe.emoji}
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">{recipe.name}</p>
-                <p className="text-xs text-zinc-500">
-                  {recipe.pricePerServing} RSD / porcija · {recipe.tags.join(", ") || "bez tagova"}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setEditingId(recipe.id);
-                  setShowAddForm(false);
-                }}
-                className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
-              >
-                Izmeni
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm(`Obrisati recept "${recipe.name}"?`)) {
-                    deleteRecipe(recipe.id);
-                  }
-                }}
-                className="text-sm font-medium text-red-500 hover:text-red-600"
-              >
-                Obriši
-              </button>
-            </li>
-          )
-        )}
-        {recipes.length === 0 && (
-          <p className="py-8 text-center text-zinc-500">
-            Nema recepata. Dodaj prvi recept iznad.
-          </p>
-        )}
-      </ul>
+                <div
+                  className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-2xl ${recipe.color}`}
+                >
+                  {recipe.emoji}
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{recipe.name}</p>
+                  <p className="text-xs text-zinc-500">
+                    {recipe.pricePerServing} RSD / porcija · {recipe.tags.join(", ") || "bez tagova"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingId(recipe.id);
+                    setShowAddForm(false);
+                  }}
+                  className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                >
+                  Izmeni
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!confirm(`Obrisati recept "${recipe.name}"?`)) return;
+                    try {
+                      setActionError(null);
+                      await deleteRecipe(recipe.id);
+                    } catch {
+                      setActionError("Brisanje recepta nije uspelo. Pokušaj ponovo.");
+                    }
+                  }}
+                  className="text-sm font-medium text-red-500 hover:text-red-600"
+                >
+                  Obriši
+                </button>
+              </li>
+            )
+          )}
+          {recipes.length === 0 && (
+            <p className="py-8 text-center text-zinc-500">
+              Nema recepata. Dodaj prvi recept iznad.
+            </p>
+          )}
+        </ul>
+      )}
     </div>
   );
 }
