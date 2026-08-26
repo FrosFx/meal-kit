@@ -1,7 +1,10 @@
 import { Recipe } from "./types";
 
 // Mock podaci -- u pravoj aplikaciji bi ovo dolazilo iz baze podataka.
-export const recipes: Recipe[] = [
+// Ovo je početni ("seed") set recepata. Admin panel čuva svoje izmene
+// odvojeno u localStorage (videti RecipeContext), tako da se ovaj niz
+// koristi samo dok korisnik ne napravi prvu izmenu ili resetuje meni.
+export const defaultRecipes: Recipe[] = [
   {
     id: "teleci-rizoto",
     name: "Teleći rižoto sa pečurkama",

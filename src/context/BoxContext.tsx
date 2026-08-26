@@ -10,7 +10,7 @@ import {
   ReactNode,
 } from "react";
 import { Plan, Recipe } from "@/lib/types";
-import { recipes } from "@/lib/recipes";
+import { useRecipes } from "./RecipeContext";
 
 const STORAGE_KEY = "meal-kit-box";
 const DELIVERY_FEE = 350;
@@ -40,6 +40,7 @@ const defaultPlan: Plan = { people: 2, mealsPerWeek: 3 };
 const BoxContext = createContext<BoxContextValue | null>(null);
 
 export function BoxProvider({ children }: { children: ReactNode }) {
+  const { recipes } = useRecipes();
   const [plan, setPlan] = useState<Plan>(defaultPlan);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -91,7 +92,7 @@ export function BoxProvider({ children }: { children: ReactNode }) {
 
   const selectedRecipes = useMemo(
     () => recipes.filter((r) => selectedIds.includes(r.id)),
-    [selectedIds]
+    [recipes, selectedIds]
   );
 
   const isSelected = useCallback(

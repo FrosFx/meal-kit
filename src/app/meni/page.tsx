@@ -1,29 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { recipes } from "@/lib/recipes";
 import { Tag } from "@/lib/types";
+import { ALL_TAGS } from "@/lib/tags";
 import RecipeCard from "@/components/RecipeCard";
 import Link from "next/link";
 import { useBox } from "@/context/BoxContext";
-
-const allTags: Tag[] = [
-  "vegetarijansko",
-  "bez glutena",
-  "brzo",
-  "porodično",
-  "niskokalorično",
-  "začinjeno",
-];
+import { useRecipes } from "@/context/RecipeContext";
 
 export default function MeniPage() {
   const [activeTag, setActiveTag] = useState<Tag | null>(null);
   const { selectedRecipes, plan, isBoxComplete } = useBox();
+  const { recipes } = useRecipes();
 
   const filtered = useMemo(
     () =>
       activeTag ? recipes.filter((r) => r.tags.includes(activeTag)) : recipes,
-    [activeTag]
+    [activeTag, recipes]
   );
 
   return (
@@ -47,7 +40,7 @@ export default function MeniPage() {
         >
           Sve
         </button>
-        {allTags.map((tag) => (
+        {ALL_TAGS.map((tag) => (
           <button
             key={tag}
             onClick={() => setActiveTag(tag === activeTag ? null : tag)}
@@ -62,11 +55,17 @@ export default function MeniPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((recipe) => (
-          <RecipeCard key={recipe.id} recipe={recipe} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <p className="py-16 text-center text-zinc-500">
+          Nema recepata za izabrani filter.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((recipe) => (
+            <RecipeCard key={recipe.id} recipe={recipe} />
+          ))}
+        </div>
+      )}
 
       {selectedRecipes.length > 0 && (
         <div className="sticky bottom-4 mt-8 flex items-center justify-between rounded-2xl border border-black/10 bg-white p-4 shadow-lg dark:border-white/10 dark:bg-zinc-900">
