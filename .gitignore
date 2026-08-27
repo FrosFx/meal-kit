@@ -45,3 +45,6 @@ next-env.d.ts
 # prisma sqlite db (lokalni podaci, ne komituju se)
 /prisma/dev.db
 /prisma/dev.db-journal
+
+.vercel
+.env*
