@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "Recipe" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "emoji" TEXT NOT NULL,
@@ -9,6 +9,8 @@ CREATE TABLE "Recipe" (
     "prepMinutes" INTEGER NOT NULL,
     "calories" INTEGER NOT NULL,
     "pricePerServing" INTEGER NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Recipe_pkey" PRIMARY KEY ("id")
 );

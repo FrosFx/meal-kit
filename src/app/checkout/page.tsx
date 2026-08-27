@@ -43,7 +43,10 @@ export default function CheckoutPage() {
         <h1 className="mb-2 text-2xl font-bold">Porudžbina je potvrđena!</h1>
         <p className="mb-6 text-zinc-600 dark:text-zinc-400">
           Broj porudžbine <span className="font-mono font-semibold">{orderNumber}</span>.
-          Ovo je demo — nije izvršeno pravo plaćanje niti je porudžbina zaista poslata.
+          Poslaćemo ti potvrdu i detalje dostave na email.
+        </p>
+        <p className="mb-6 text-xs text-zinc-400 dark:text-zinc-500">
+          Ovo je rani pregled proizvoda — plaćanje u ovom koraku nije izvršeno.
         </p>
         <Link
           href="/meni"
@@ -138,17 +141,15 @@ export default function CheckoutPage() {
             </select>
           </div>
 
-          <div className="mt-2 rounded-lg bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-            Ovo je prototip — plaćanje se ne izvršava zaista, forma samo
-            simulira tok porudžbine.
-          </div>
-
           <button
             type="submit"
             className="mt-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
           >
             Potvrdi porudžbinu ({total} RSD)
           </button>
+          <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
+            Rani pregled proizvoda — plaćanje u ovom koraku nije izvršeno.
+          </p>
         </form>
       </div>
 

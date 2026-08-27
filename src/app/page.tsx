@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { db } from "@/lib/db";
 
 const steps = [
   {
@@ -18,7 +19,18 @@ const steps = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const recipes = await db.recipe.findMany();
+  const prices = recipes.map((r) => r.pricePerServing);
+  const minPrice = prices.length ? Math.min(...prices) : null;
+  const showcase = recipes.slice(0, 5);
+
+  const stats = [
+    { value: `${recipes.length || "—"}`, label: "recepata na meniju" },
+    { value: minPrice ? `od ${minPrice} RSD` : "—", label: "po porciji" },
+    { value: "< 30 min", label: "do gotovog obroka" },
+  ];
+
   return (
     <div className="flex flex-col items-center">
       <section className="w-full bg-gradient-to-b from-emerald-50 to-zinc-50 px-6 py-20 text-center dark:from-emerald-950/30 dark:to-black">
@@ -46,6 +58,39 @@ export default function Home() {
             Moja kutija
           </Link>
         </div>
+
+        <div className="mx-auto mt-12 grid max-w-lg grid-cols-3 gap-4">
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+                {stat.value}
+              </p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {showcase.length > 0 && (
+          <div className="mx-auto mt-10 flex max-w-xl flex-wrap items-center justify-center gap-3">
+            {showcase.map((r) => (
+              <div
+                key={r.id}
+                className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br text-2xl shadow-sm ${r.color}`}
+                title={r.name}
+              >
+                {r.emoji}
+              </div>
+            ))}
+            <Link
+              href="/meni"
+              className="text-sm font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-400"
+            >
+              i još...
+            </Link>
+          </div>
+        )}
       </section>
 
       <section className="grid w-full max-w-5xl grid-cols-1 gap-8 px-6 py-16 sm:grid-cols-3">

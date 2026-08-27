@@ -113,10 +113,9 @@ export default function AdminPage() {
         </button>
       </div>
 
-      <div className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-        Recepti se sada čuvaju u pravoj bazi podataka (SQLite) — izmene su
-        trajne i vidljive svim posetiocima, ne samo u ovom browseru.
-      </div>
+      <p className="mb-6 text-xs text-zinc-400 dark:text-zinc-500">
+        Izmene ovde su trajne i odmah vidljive svim posetiocima sajta.
+      </p>
 
       {loadError && (
         <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300">
