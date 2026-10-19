@@ -22,6 +22,107 @@ model Recipe {
   prepMinutes     Int
   calories        Int
   pricePerServing Int
+  // Neaktivni recepti se ne prikazuju na sajtu, ali ostaju u adminu i
+  // u istoriji porudžbina.
+  active          Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  ingredients RecipeIngredient[]
+  orderItems  OrderItem[]
+}
+
+// Sastojci po porciji -- koriste se za nabavku (količina × broj porcija).
+model RecipeIngredient {
+  id                 String @id @default(cuid())
+  recipeId           String
+  recipe             Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  name               String
+  quantityPerServing Float
+  unit               String
+
+  @@index([recipeId])
+}
+
+// Kupac se prepoznaje po email adresi; kontakt podaci se ažuriraju pri
+// svakoj novoj porudžbini.
+model Customer {
+  id              String   @id @default(cuid())
+  firstName       String
+  lastName        String
+  phone           String
+  email           String   @unique
+  deliveryAddress String
+  city            String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  orders Order[]
+
+  @@index([createdAt])
+}
+
+enum OrderStatus {
+  NOVA
+  POTVRDJENA
+  U_PRIPREMI
+  POSLATA
+  ISPORUCENA
+  OTKAZANA
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  number          String      @unique // MK-xxxxxx, generiše server
+  status          OrderStatus @default(NOVA)
+  // Dan u nedelji koji je kupac izabrao ("Ponedeljak"...) i konkretan datum
+  // dostave izračunat na serveru (za nabavku po periodu).
+  deliveryDay     String
+  deliveryDate    DateTime    @db.Date
+  // Adresa u trenutku porudžbine (kupac je kasnije može promeniti).
+  deliveryAddress String
+  city            String
+  people          Int
+  mealsPerWeek    Int
+  subtotal        Int // RSD
+  deliveryFee     Int // RSD
+  total           Int // RSD
+  customerId      String
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items         OrderItem[]
+  statusChanges OrderStatusChange[]
+
+  @@index([createdAt])
+  @@index([status, deliveryDate])
+  @@index([customerId])
+}
+
+model OrderItem {
+  id              String  @id @default(cuid())
+  orderId         String
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  // Recept može biti obrisan -- tada ostaju sačuvani naziv i cena.
+  recipeId        String?
+  recipe          Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  recipeName      String
+  pricePerServing Int // RSD, cena u trenutku porudžbine
+  servings        Int
+
+  @@index([orderId])
+  @@index([recipeId])
+}
+
+// Istorija statusa porudžbine (prvi unos pravi kupac, ostale admin).
+model OrderStatusChange {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    OrderStatus
+  byAdmin   Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  @@index([orderId, createdAt])
 }
