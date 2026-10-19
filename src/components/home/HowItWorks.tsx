@@ -1,45 +1,83 @@
+import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import SectionHeader from "@/components/SectionHeader";
+import Icon, { type IconName } from "@/components/icons";
 
-interface Step {
-  emoji: string;
+export interface Step {
+  icon: IconName;
   title: string;
   text: string;
 }
 
 export default function HowItWorks({ steps }: { steps: Step[] }) {
   return (
-    <section className="w-full max-w-5xl px-6 py-20">
-      <Reveal>
-        <div className="mb-12 text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">
-            Kako funkcioniše
-          </p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-            Tri koraka do toplog obroka
-          </h2>
-        </div>
-      </Reveal>
+    <section id="kako" aria-labelledby="kako-naslov" className="section-y">
+      <div className="container-page">
+        <Reveal>
+          <SectionHeader
+            id="kako-naslov"
+            eyebrow="Kako funkcioniše"
+            title={
+              <>
+                Tri koraka do <em>toplog</em> obroka
+              </>
+            }
+            lede="Bez planiranja, bez spiska za kupovinu."
+          />
+        </Reveal>
 
-      <div className="relative grid grid-cols-1 gap-8 sm:grid-cols-3">
-        {/* connecting line on desktop */}
-        <div className="pointer-events-none absolute top-12 left-1/6 hidden h-px w-2/3 bg-gradient-to-r from-emerald-200 via-emerald-300 to-emerald-200 sm:block dark:from-emerald-800 dark:via-emerald-700 dark:to-emerald-800" />
-
-        {steps.map((step, i) => (
-          <Reveal key={step.title} delayMs={i * 150}>
-            <div className="relative flex flex-col items-center text-center">
-              <div className="relative z-10 flex h-24 w-24 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-                <span className="text-4xl">{step.emoji}</span>
-                <span className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white shadow">
-                  {i + 1}
+        <ol className="mt-8 grid grid-cols-1 gap-8 md:mt-10 md:grid-cols-3 md:gap-6 lg:mt-12">
+          {steps.map((step, i) => {
+            const last = i === steps.length - 1;
+            return (
+              <Reveal
+                as="li"
+                key={step.title}
+                delayMs={i * 120}
+                className="relative grid grid-cols-[56px_1fr] gap-x-5 md:flex md:flex-col md:items-center md:text-center lg:items-start lg:text-left"
+              >
+                {!last && (
+                  <>
+                    {/* mobilni: vertikalna linija između krugova */}
+                    <span
+                      aria-hidden="true"
+                      className="connector connector-y absolute top-16 -bottom-6 left-[27px] border-l-2 border-dashed border-line-strong md:hidden"
+                    />
+                    {/* desktop: horizontalna linija kroz centre krugova */}
+                    <span
+                      aria-hidden="true"
+                      className="connector connector-x absolute top-7 right-[-16px] left-[72px] hidden border-t-2 border-dashed border-line-strong lg:block"
+                    />
+                  </>
+                )}
+                <span className="relative grid size-14 place-items-center rounded-full bg-mustard text-on-mustard">
+                  <Icon name={step.icon} size="lg" />
                 </span>
-              </div>
-              <h3 className="mt-5 text-lg font-semibold">{step.title}</h3>
-              <p className="mt-2 max-w-xs text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                {step.text}
-              </p>
-            </div>
-          </Reveal>
-        ))}
+                <div className="md:mt-5">
+                  <p
+                    aria-hidden="true"
+                    className="t-display-m tabular text-paprika italic"
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h3 className="t-title mt-2 text-ink">
+                    <span className="sr-only">Korak {i + 1}: </span>
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 max-w-[36ch] text-ink-muted md:mx-auto lg:mx-0">
+                    {step.text}
+                  </p>
+                </div>
+              </Reveal>
+            );
+          })}
+        </ol>
+
+        <div className="mt-10 flex justify-center md:mt-12">
+          <Link href="/meni" className="btn btn-secondary">
+            Pogledaj nedeljni meni
+          </Link>
+        </div>
       </div>
     </section>
   );

@@ -1,55 +1,43 @@
-import { db } from "@/lib/db";
-import { toAppRecipe } from "@/lib/recipeSerialization";
+import type { Metadata } from "next";
+import { getHomeData } from "@/lib/home";
 import Hero from "@/components/home/Hero";
-import HowItWorks from "@/components/home/HowItWorks";
-import RecipeShowcase from "@/components/home/RecipeShowcase";
+import ValueStrip from "@/components/home/ValueStrip";
+import HowItWorks, { type Step } from "@/components/home/HowItWorks";
+import MenuSection from "@/components/home/MenuSection";
 import WhyUs from "@/components/home/WhyUs";
-import PricingPreview from "@/components/home/PricingPreview";
+import Pricing from "@/components/home/Pricing";
 import FaqSection from "@/components/home/FaqSection";
 import FinalCta from "@/components/home/FinalCta";
+import type { FaqItem } from "@/components/FaqAccordion";
 
-const steps = [
+const title = "KutijaObroka — sveži obroci na tvojim vratima";
+const description =
+  "Izmereni sastojci i jednostavni recepti dostavljeni na kućnu adresu. Izaberi plan i obroke iz nedeljnog menija — gotovo za manje od 30 minuta.";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { title, description, url: "/" },
+};
+
+const steps: Step[] = [
   {
-    emoji: "📋",
+    icon: "utensils",
     title: "Izaberi plan",
     text: "Odaberi veličinu domaćinstva i koliko obroka nedeljno želiš da kuvaš.",
   },
   {
-    emoji: "🍽️",
+    icon: "shopping-basket",
     title: "Izaberi recepte",
     text: "Pregledaj nedeljni meni i dodaj obroke koji te zanimaju u kutiju.",
   },
   {
-    emoji: "🚚",
+    icon: "truck",
     title: "Dostava do vrata",
     text: "Sastojci i recepti stižu isečeni, izmereni i spremni za kuvanje.",
   },
 ];
 
-const benefits = [
-  {
-    emoji: "🥕",
-    title: "Sveži, izmereni sastojci",
-    text: "Tačno onoliko koliko receptu treba — bez pogađanja količina i bez bačene hrane.",
-  },
-  {
-    emoji: "⏱️",
-    title: "Manje vremena u kuhinji",
-    text: "Većina recepata je gotova za manje od 30 minuta, uz jasna uputstva korak po korak.",
-  },
-  {
-    emoji: "🗓️",
-    title: "Fleksibilan plan",
-    text: "Menjaš broj obroka i veličinu porcija iz nedelje u nedelju, bez dugoročne obaveze.",
-  },
-  {
-    emoji: "🌱",
-    title: "Nešto za svakoga",
-    text: "Vegetarijansko, bez glutena, brzo za pripremu, porodično — filtriraš po tome šta ti treba.",
-  },
-];
-
-const faqItems = [
+const faqItems: FaqItem[] = [
   {
     question: "Kako biram obroke svake nedelje?",
     answer:
@@ -58,7 +46,7 @@ const faqItems = [
   {
     question: "Mogu li da promenim broj obroka ili osoba?",
     answer:
-      "Da, plan (broj osoba i broj obroka nedeljno) menjaš u svakom trenutku u sekciji \"Moja kutija\", pre nego što potvrdiš porudžbinu.",
+      "Da, plan (broj osoba i broj obroka nedeljno) menjaš u svakom trenutku u sekciji „Moja kutija”, pre nego što potvrdiš porudžbinu.",
   },
   {
     question: "Ima li vegetarijanskih ili bezglutenskih opcija?",
@@ -77,34 +65,29 @@ const faqItems = [
   },
 ];
 
-// Čita recepte iz baze pri svakoj poseti -- bez ovoga bi Next.js "zamrzao"
-// brojke u trenutku build-a (admin panel menja recepte u bilo kom trenutku).
+// getHomeData() poziva connection(), pa se strana uvek renderuje po zahtevu
+// (admin panel menja recepte u bilo kom trenutku).
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const rows = await db.recipe.findMany({ orderBy: { createdAt: "asc" } });
-  const recipes = rows.map(toAppRecipe);
-  const prices = recipes.map((r) => r.pricePerServing);
-  const minPrice = prices.length ? Math.min(...prices) : null;
-  const maxPrice = prices.length ? Math.max(...prices) : null;
-  const showcase = recipes.slice(0, 6);
-  const preview = recipes.slice(0, 3);
-
-  const stats = [
-    { value: `${recipes.length || "—"}`, label: "recepata na meniju" },
-    { value: minPrice ? `od ${minPrice}` : "—", label: "RSD po porciji" },
-    { value: "< 30 min", label: "do gotovog obroka" },
-  ];
+  const data = await getHomeData();
+  const { minPrice, maxPrice } = data.stats;
+  const showPricing = data.status === "ok" && minPrice !== null && maxPrice !== null;
 
   return (
-    <div className="flex flex-col items-center">
-      <Hero stats={stats} showcase={showcase} />
+    <>
+      {/* Bez cena na strani i linkovi "Cene" (nav, footer) nemaju kuda da vode. */}
+      {!showPricing && <style>{`[data-nav-anchor="cene"]{display:none}`}</style>}
+      <Hero data={data} />
+      <ValueStrip />
       <HowItWorks steps={steps} />
-      <RecipeShowcase recipes={preview} />
-      <WhyUs benefits={benefits} />
-      <PricingPreview minPrice={minPrice} maxPrice={maxPrice} />
+      <MenuSection data={data} />
+      <WhyUs data={data} />
+      {showPricing && (
+        <Pricing minPrice={minPrice} maxPrice={maxPrice} deliveryFee={data.deliveryFee} />
+      )}
       <FaqSection items={faqItems} />
-      <FinalCta />
-    </div>
+      <FinalCta data={data} />
+    </>
   );
 }

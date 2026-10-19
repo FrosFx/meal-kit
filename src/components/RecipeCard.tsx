@@ -1,68 +1,104 @@
 "use client";
 
-import { Recipe } from "@/lib/types";
+import { Recipe, Tag } from "@/lib/types";
 import { useBox } from "@/context/BoxContext";
+import Plate, { plateTilt } from "@/components/Plate";
+import Icon from "@/components/icons";
 
-export default function RecipeCard({ recipe }: { recipe: Recipe }) {
+const DIET_TAGS: Tag[] = ["vegetarijansko", "bez glutena"];
+
+// Jedna kartica recepta za početnu i /meni (MASTER 6.5).
+export default function RecipeCard({
+  recipe,
+  index = 0,
+}: {
+  recipe: Recipe;
+  index?: number;
+}) {
   const { isSelected, toggleRecipe } = useBox();
   const selected = isSelected(recipe.id);
 
   return (
-    <div
-      className={`group flex flex-col overflow-hidden rounded-2xl border bg-white transition-all dark:bg-zinc-950 ${
-        selected
-          ? "border-emerald-500 shadow-lg shadow-emerald-100 dark:shadow-none"
-          : "border-black/10 shadow-sm hover:-translate-y-0.5 hover:shadow-lg dark:border-white/10"
+    <article
+      className={`recipe-card card flex h-full flex-col gap-4 p-5 lg:p-6 ${
+        selected ? "border-basil ring-1 ring-basil" : ""
       }`}
     >
       <div
-        className={`relative flex h-40 items-center justify-center overflow-hidden bg-gradient-to-br ${recipe.color}`}
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.35) 0, rgba(255,255,255,0.35) 2px, transparent 2px), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.25) 0, rgba(255,255,255,0.25) 3px, transparent 3px)",
-          backgroundSize: "28px 28px, 40px 40px",
-        }}
+        className={`relative grid aspect-[4/3] place-items-center rounded-[var(--radius-md)] transition-colors ${
+          selected ? "bg-basil-tint" : "bg-paper-2"
+        }`}
       >
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/40 text-5xl backdrop-blur-sm drop-shadow-sm transition-transform group-hover:scale-105 dark:bg-black/15">
-          {recipe.emoji}
-        </div>
-        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/10 to-transparent" />
+        <Plate recipe={recipe} tilt={plateTilt(index)} className="w-[62%]" />
+        <span className="badge absolute top-3 left-3 bg-card text-ink">
+          <Icon name="clock" size="sm" />
+          {recipe.prepMinutes} min
+        </span>
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold leading-snug">{recipe.name}</h3>
-          <span className="shrink-0 whitespace-nowrap text-sm font-bold text-emerald-600">
-            {recipe.pricePerServing} RSD
-          </span>
-        </div>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {recipe.description}
-        </p>
-        <div className="flex flex-wrap gap-1.5">
+
+      {recipe.tags.length > 0 && (
+        <ul className="flex flex-wrap gap-1.5" aria-label="Oznake">
           {recipe.tags.map((tag) => (
-            <span
+            <li
               key={tag}
-              className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-white/10 dark:text-zinc-300"
+              className={`badge ${DIET_TAGS.includes(tag) ? "badge-diet" : ""}`}
             >
+              {DIET_TAGS.includes(tag) && <Icon name="leaf" size={14} />}
               {tag}
-            </span>
+            </li>
           ))}
-        </div>
-        <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
-          <span>⏱ {recipe.prepMinutes} min</span>
-          <span>🔥 {recipe.calories} kcal</span>
-        </div>
+        </ul>
+      )}
+
+      <div className="flex flex-col gap-2">
+        <h3 className="t-title text-ink">{recipe.name}</h3>
+        <p className="text-ink-muted">{recipe.description}</p>
+      </div>
+
+      <p className="t-meta mt-auto flex items-center gap-1.5 text-ink-muted">
+        <Icon name="flame" size="sm" />
+        {recipe.calories} kcal
+      </p>
+
+      <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+        <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+          <span className="fraunces tabular text-[22px] leading-none font-semibold whitespace-nowrap text-paprika">
+            {recipe.pricePerServing.toLocaleString("sr-RS")} RSD
+          </span>
+          <span className="t-meta whitespace-nowrap text-ink-muted">/ porcija</span>
+        </p>
         <button
+          type="button"
           onClick={() => toggleRecipe(recipe.id)}
-          className={`mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-            selected
-              ? "bg-emerald-600 text-white hover:bg-emerald-700"
-              : "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-          }`}
+          aria-pressed={selected}
+          className={`btn shrink-0 ${selected ? "btn-selected" : "btn-secondary"}`}
         >
-          {selected ? "Dodato u kutiju ✓" : "Dodaj u kutiju"}
+          <Icon name={selected ? "check" : "plus"} />
+          <span key={String(selected)} className="num-swap">
+            {selected ? (
+              <>
+                U kutiji<span className="sr-only">: {recipe.name}</span>
+              </>
+            ) : (
+              <>
+                Dodaj<span className="sr-only"> {recipe.name}</span>
+              </>
+            )}
+          </span>
         </button>
       </div>
+    </article>
+  );
+}
+
+export function RecipeCardSkeleton() {
+  return (
+    <div className="card flex flex-col gap-4 p-5 lg:p-6" aria-hidden="true">
+      <div className="skeleton-pulse aspect-[4/3] rounded-[var(--radius-md)] bg-paper-2" />
+      <div className="skeleton-pulse h-6 w-32 rounded-full bg-paper-2" />
+      <div className="skeleton-pulse h-6 w-3/4 rounded-[var(--radius-sm)] bg-paper-2" />
+      <div className="skeleton-pulse h-12 rounded-[var(--radius-sm)] bg-paper-2" />
+      <div className="skeleton-pulse mt-4 h-11 rounded-full bg-paper-2" />
     </div>
   );
 }

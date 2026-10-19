@@ -9,11 +9,11 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { DELIVERY_FEE } from "@/lib/pricing";
 import { Plan, Recipe } from "@/lib/types";
 import { useRecipes } from "./RecipeContext";
 
 const STORAGE_KEY = "meal-kit-box";
-const DELIVERY_FEE = 350;
 
 interface StoredState {
   plan: Plan;

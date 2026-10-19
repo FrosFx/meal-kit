@@ -1,31 +1,53 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
+import type { HomeData } from "@/lib/home";
 import Reveal from "@/components/Reveal";
+import Plate, { plateTilt } from "@/components/Plate";
+import Icon from "@/components/icons";
 
-export default function FinalCta() {
+export default function FinalCta({ data }: { data: HomeData }) {
+  const { status, featured, stats } = data;
+  const ok = status === "ok";
+  // 5 tanjira (na 375 samo 3); recepti se ponavljaju ako ih ima manje.
+  const plates = Array.from({ length: 5 }, (_, i) =>
+    ok && featured.length ? featured[i % featured.length] : null
+  );
+
   return (
-    <section className="w-full px-6 py-24">
-      <Reveal>
-        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-600 to-teal-600 px-8 py-16 text-center shadow-2xl shadow-emerald-600/20">
-          <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
-          <div className="pointer-events-none absolute -bottom-12 -left-12 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
+    <section
+      aria-labelledby="cta-naslov"
+      className="on-dark relative overflow-hidden bg-forest pt-24 pb-44 text-center md:pb-52 lg:pt-32 lg:pb-56"
+    >
+      <Reveal className="container-page relative z-10 flex flex-col items-center">
+        <p className="t-eyebrow text-mustard">Ove nedelje</p>
+        <h2 id="cta-naslov" className="t-display-l mt-3 max-w-[18ch] text-on-forest">
+          Ti kuvaš. Sve ostalo je <em className="italic">već u kutiji</em>.
+        </h2>
+        <p className="t-body-l mt-5 max-w-[48ch] text-on-forest-muted">
+          {ok
+            ? `Pogledaj ${stats.recipeCount} recepata ove nedelje i sastavi svoju prvu kutiju za manje od dva minuta.`
+            : "Pogledaj nedeljni meni i sastavi svoju prvu kutiju za manje od dva minuta."}
+        </p>
+        <Link href="/meni" className="group btn btn-primary btn-lg mt-8 w-full sm:w-auto">
+          Pogledaj nedeljni meni
+          <Icon name="arrow-right" className="btn-arrow group-hover:translate-x-1" />
+        </Link>
+      </Reveal>
 
-          <div className="relative">
-            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              Spreman/na da probaš?
-            </h2>
-            <p className="mx-auto mt-4 max-w-md text-lg text-emerald-50">
-              Pogledaj nedeljni meni i sastavi svoju prvu kutiju za manje od dva
-              minuta.
-            </p>
-            <Link
-              href="/meni"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-base font-bold text-emerald-700 shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-            >
-              Pogledaj nedeljni meni
-              <span>→</span>
-            </Link>
-          </div>
-        </div>
+      <Reveal
+        fade
+        className="pointer-events-none absolute inset-x-0 bottom-0 flex translate-y-[40%] justify-center gap-4 md:gap-6"
+      >
+        {plates.map((recipe, i) => (
+          <span
+            key={i}
+            aria-hidden="true"
+            className={`rise-child ${i >= 3 ? "hidden md:block" : ""}`}
+            style={{ "--rise": "48px", transitionDelay: `${i * 80}ms` } as CSSProperties}
+          >
+            <Plate recipe={recipe} tilt={plateTilt(i)} className="size-24 md:size-40" />
+          </span>
+        ))}
       </Reveal>
     </section>
   );

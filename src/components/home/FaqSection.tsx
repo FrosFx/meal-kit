@@ -1,34 +1,32 @@
-import nextDynamic from "next/dynamic";
+import Link from "next/link";
 import Reveal from "@/components/Reveal";
-
-const FaqAccordion = nextDynamic(() => import("@/components/FaqAccordion"), {
-  loading: () => (
-    <div className="h-64 animate-pulse rounded-2xl bg-zinc-100 dark:bg-white/5" />
-  ),
-});
-
-export interface FaqItem {
-  question: string;
-  answer: string;
-}
+import SectionHeader from "@/components/SectionHeader";
+import FaqAccordion, { type FaqItem } from "@/components/FaqAccordion";
 
 export default function FaqSection({ items }: { items: FaqItem[] }) {
   return (
-    <section className="w-full bg-white px-6 py-20 dark:bg-zinc-950">
-      <div className="mx-auto max-w-2xl">
-        <Reveal>
-          <div className="mb-10 text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">
-              Pitanja
-            </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-              Najčešća pitanja
-            </h2>
-          </div>
-        </Reveal>
-        <Reveal delayMs={100}>
+    <section id="pitanja" aria-labelledby="pitanja-naslov" className="section-y">
+      <div className="container-page grid grid-cols-1 gap-8 md:gap-10 lg:grid-cols-12 lg:gap-6 xl:gap-8">
+        <div className="max-w-[720px] lg:col-span-4">
+          <Reveal className="lg:sticky lg:top-28">
+            <SectionHeader
+              id="pitanja-naslov"
+              eyebrow="Pitanja"
+              title={
+                <>
+                  Najčešća <em>pitanja</em>
+                </>
+              }
+              lede="Tačnu cenu i sadržaj kutije uvek vidiš pre nego što potvrdiš porudžbinu."
+            />
+            <Link href="/meni" className="btn btn-ghost -ml-2 mt-4 hidden lg:inline-flex">
+              Sastavi kutiju
+            </Link>
+          </Reveal>
+        </div>
+        <div className="max-w-[720px] lg:col-span-7 lg:col-start-6">
           <FaqAccordion items={items} />
-        </Reveal>
+        </div>
       </div>
     </section>
   );

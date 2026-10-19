@@ -48,3 +48,8 @@ next-env.d.ts
 
 .vercel
 .env*
+!.env.example
+
+# agent-local memory
+.claude/agent-memory-local/
+qa/**/*.json.gz

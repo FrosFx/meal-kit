@@ -1,106 +1,199 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
+import type { HomeData } from "@/lib/home";
+import { formatNumber, formatRsd } from "@/components/format";
+import Plate, { plateTilt } from "@/components/Plate";
+import Icon, { type IconName } from "@/components/icons";
 
-interface HeroStat {
-  value: string;
-  label: string;
-}
+const promises: { icon: IconName; label: string }[] = [
+  { icon: "scale", label: "Izmereni sastojci" },
+  { icon: "chef-hat", label: "Recepti korak po korak" },
+  { icon: "truck", label: "Dostava do vrata" },
+];
 
-interface HeroCircle {
-  id: string;
-  name: string;
-  emoji: string;
-  color: string;
-}
+// Raspored tanjira: mobilni/tablet red (srednji najveći, napred),
+// od 1024 slobodna kompozicija. Redosled u DOM-u: mali, veliki, mali.
+const plateSlots = [
+  {
+    recipeIndex: 1,
+    className:
+      "size-24 md:size-[140px] lg:absolute lg:right-0 lg:top-0 lg:size-[180px] xl:size-[220px]",
+  },
+  {
+    recipeIndex: 0,
+    className:
+      "z-10 size-40 md:size-[220px] lg:absolute lg:left-[6%] lg:top-[90px] lg:size-80 xl:top-[90px] xl:size-[400px]",
+  },
+  {
+    recipeIndex: 2,
+    className:
+      "z-20 size-24 md:size-[140px] lg:absolute lg:bottom-0 lg:left-0 lg:size-40 xl:size-[190px]",
+  },
+];
 
-export default function Hero({
-  stats,
-  showcase,
-}: {
-  stats: HeroStat[];
-  showcase: HeroCircle[];
-}) {
+export default function Hero({ data }: { data: HomeData }) {
+  const { status, stats, featured, deliveryFee } = data;
+  const ok = status === "ok";
+  const plates = featured.slice(0, 3);
+  const minPrice = stats.minPrice;
+
+  const eyebrow =
+    status === "ok"
+      ? `Nedeljni meni · ${stats.recipeCount} recepata`
+      : status === "empty"
+        ? "Novi meni stiže uskoro"
+        : "Nedeljni meni";
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50 via-zinc-50 to-white px-6 pt-28 pb-24 text-center dark:from-emerald-950/40 dark:via-zinc-950 dark:to-black">
-      {/* decorative blurred blobs */}
-      <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-emerald-300/30 blur-3xl dark:bg-emerald-700/20" />
-      <div className="pointer-events-none absolute -top-12 right-0 h-72 w-72 rounded-full bg-amber-200/30 blur-3xl dark:bg-amber-600/10" />
+    <section
+      aria-labelledby="hero-naslov"
+      className="relative overflow-hidden pt-8 pb-16 md:pt-12 md:pb-20 lg:flex lg:min-h-[min(calc(100dvh-120px),860px)] lg:items-center lg:py-16 xl:min-h-[min(calc(100dvh-140px),860px)] xl:py-12"
+    >
+      <div className="container-page grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-6 xl:gap-8">
+        {/* Tekst */}
+        <div className="max-w-[600px] lg:col-span-6 lg:max-w-none">
+          <p className="anim-rise t-meta inline-flex items-center gap-2 rounded-full bg-basil-tint px-3.5 py-1.5 font-semibold text-basil">
+            <Icon name="leaf" size="sm" />
+            {eyebrow}
+          </p>
 
-      <div className="relative mx-auto max-w-3xl">
-        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          Sveži sastojci · Provereni recepti
-        </span>
+          <h1 id="hero-naslov" className="t-display-xl mt-6 text-ink xl:mt-5">
+            Večera za{" "}
+            <span className="whitespace-nowrap">
+            <em className="relative inline-block italic">
+              30 minuta
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 200 20"
+                preserveAspectRatio="none"
+                className="absolute -bottom-[0.1em] left-[-2%] -z-10 h-[0.32em] w-[104%] text-mustard"
+              >
+                <path
+                  className="swash-path"
+                  pathLength={1}
+                  d="M4 15 C 50 6, 120 3, 196 9"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={4.5}
+                  strokeLinecap="round"
+                />
+              </svg>
+            </em>
+            ,
+            </span>{" "}
+            bez odlaska u prodavnicu.
+          </h1>
 
-        <h1 className="mt-6 text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-          Kuvaj kao{" "}
-          <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-            profesionalac
-          </span>
-          ,<br className="hidden sm:block" /> bez odlaska u prodavnicu
-        </h1>
+          <p className="t-body-l mt-6 max-w-[46ch] text-ink-muted xl:mt-5">
+            Svake nedelje biraš obroke, a mi ti šaljemo tačno izmerene sastojke
+            i jednostavne recepte korak po korak.
+          </p>
 
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Svake nedelje biraš obroke, mi ti šaljemo tačno izmerene sastojke i
-          jednostavne recepte — spremno za kuvanje za manje od 30 minuta.
-        </p>
-
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href="/meni"
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-600/30 sm:w-auto"
+          <div
+            className="anim-rise mt-8 flex flex-col xl:mt-7 items-center gap-2 sm:flex-row sm:gap-4"
+            style={{ animationDelay: "150ms" }}
           >
-            Pogledaj nedeljni meni
-            <span className="transition-transform group-hover:translate-x-1">→</span>
-          </Link>
-          <Link
-            href="/kutija"
-            className="inline-flex w-full items-center justify-center rounded-full border-2 border-zinc-300 px-8 py-4 text-base font-semibold transition-all hover:border-emerald-500 hover:text-emerald-600 sm:w-auto dark:border-zinc-700 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
-          >
-            Moja kutija
-          </Link>
-        </div>
-      </div>
-
-      {/* stats row */}
-      <div className="relative mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="text-center">
-            <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400 sm:text-4xl">
-              {stat.value}
-            </p>
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 sm:text-sm">
-              {stat.label}
-            </p>
+            <Link href="/meni" className="group btn btn-primary btn-lg w-full sm:w-auto">
+              Pogledaj nedeljni meni
+              <Icon name="arrow-right" className="btn-arrow group-hover:translate-x-1" />
+            </Link>
+            <Link href="#kako" className="btn btn-ghost">
+              Kako funkcioniše
+            </Link>
           </div>
-        ))}
-      </div>
 
-      {/* floating recipe circles */}
-      {showcase.length > 0 && (
-        <div className="relative mx-auto mt-14 flex max-w-2xl flex-wrap items-center justify-center gap-4">
-          {showcase.map((r, i) => (
-            <div
-              key={r.id}
-              className={`group flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br text-3xl shadow-md transition-transform hover:scale-110 ${r.color} ${
-                i % 2 === 0 ? "animate-[float_4s_ease-in-out_infinite]" : "animate-[float_5s_ease-in-out_infinite_0.5s]"
-              }`}
-              title={r.name}
-              style={{
-                animationDelay: `${i * 0.3}s`,
-              }}
+          {ok ? (
+            <dl
+              className="anim-rise mt-10 grid max-w-[520px] xl:mt-8 grid-cols-[repeat(3,auto)] justify-start divide-x divide-line sm:grid-cols-3"
+              style={{ animationDelay: "250ms" }}
             >
-              {r.emoji}
-            </div>
-          ))}
-          <Link
-            href="/meni"
-            className="text-sm font-semibold text-emerald-700 underline underline-offset-4 dark:text-emerald-400"
-          >
-            i još…
-          </Link>
+              <Stat value={formatNumber(stats.recipeCount)} label="recepata ove nedelje" />
+              <Stat
+                value={minPrice !== null ? `od ${formatNumber(minPrice)}` : "—"}
+                label="RSD po porciji"
+              />
+              <Stat
+                value="≤ 30 min"
+                label={`${stats.quickRecipeCount} od ${stats.recipeCount} recepata`}
+              />
+            </dl>
+          ) : (
+            <ul
+              className="anim-rise mt-10 grid max-w-[520px] xl:mt-8 grid-cols-[repeat(3,auto)] justify-start divide-x divide-line sm:grid-cols-3"
+              style={{ animationDelay: "250ms" }}
+            >
+              {promises.map((p) => (
+                <li key={p.label} className="flex flex-col gap-2 px-3 first:pl-0 sm:px-5">
+                  <Icon name={p.icon} size="lg" className="text-basil" />
+                  <span className="t-meta text-ink">{p.label}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      )}
 
+        {/* Tanjiri */}
+        <div className="relative lg:col-span-6">
+          <div
+            role="img"
+            aria-label={
+              ok
+                ? `Recepti ove nedelje: ${plates.map((r) => r.name).join(", ")}`
+                : "Prazni tanjiri — novi meni stiže uskoro"
+            }
+            className="relative flex items-center justify-center -space-x-4 md:justify-start lg:h-[540px] lg:space-x-0 xl:h-[600px]"
+          >
+            {/* "podmetač" iza velikog tanjira */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute hidden rounded-full border-2 border-mustard opacity-35 lg:block lg:top-[50px] lg:left-[calc(6%-40px)] lg:size-[400px] xl:top-[40px] xl:left-[calc(6%-50px)] xl:size-[500px]"
+            />
+            {plateSlots.map((slot, i) => {
+              const recipe = ok ? (plates[slot.recipeIndex] ?? null) : null;
+              const tilt = plateTilt(slot.recipeIndex);
+              const style = {
+                animationDelay: `${200 + i * 90}ms`,
+              } as CSSProperties;
+              return (
+                <Plate
+                  key={slot.recipeIndex}
+                  recipe={recipe}
+                  tilt={tilt}
+                  className={`anim-plate relative ${slot.className}`}
+                  style={style}
+                  sticker={
+                    slot.recipeIndex === 0 && ok && minPrice !== null
+                      ? `od ${formatRsd(minPrice)}`
+                      : undefined
+                  }
+                />
+              );
+            })}
+          </div>
+
+          {ok && minPrice !== null && (
+            <div className="anim-receipt card absolute right-0 bottom-0 z-30 hidden w-56 -rotate-3 p-5 shadow-lg md:block lg:bottom-6 xl:bottom-10">
+              <p className="t-meta font-semibold text-ink">Kutija za 2 osobe</p>
+              <ul className="t-meta tabular mt-2 flex flex-col gap-1 text-ink-muted">
+                <li>3 obroka × 2 porcije</li>
+                <li>Dostava {formatRsd(deliveryFee)}</li>
+              </ul>
+              <p className="fraunces tabular mt-3 border-t border-dashed border-line-strong pt-3 text-xl font-semibold text-paprika">
+                od {formatRsd(2 * 3 * minPrice + deliveryFee)}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </section>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col-reverse justify-end gap-1 px-3 first:pl-0 last:pr-0 sm:px-5">
+      <dt className="t-meta text-ink-muted">{label}</dt>
+      <dd className="t-display-m tabular whitespace-nowrap text-ink">{value}</dd>
+    </div>
   );
 }
