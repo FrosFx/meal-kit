@@ -9,7 +9,9 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:seed-demo": "tsx --env-file=.env prisma/seed-demo.ts",
+    "db:copy-recipes": "tsx --env-file=.env prisma/copy-recipes-from-old.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

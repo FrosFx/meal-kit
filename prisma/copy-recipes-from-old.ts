@@ -2,7 +2,7 @@
 // sa istim id-jevima i datumima. Stara baza se SAMO čita, i to unutar
 // READ ONLY transakcije, pa Postgres odbija svaki eventualni upis.
 //
-// Pokretanje: npx tsx prisma/copy-recipes-from-old.ts
+// Pokretanje: npm run db:copy-recipes
 // Potrebno: OLD_DATABASE_URL (stara baza) i DATABASE_URL (nova baza, migrirana).
 // Bezbedno za ponovno pokretanje: postojeći id-jevi se preskaču.
 

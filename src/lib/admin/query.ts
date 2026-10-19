@@ -56,6 +56,22 @@ export function parseRange(
   return Object.keys(errors).length ? { ok: false, errors } : { ok: true, value: { from, to } };
 }
 
+// Za nabavku: podrazumevano narednih `defaultDays` dana počev od danas.
+export function parseUpcomingRange(
+  params: URLSearchParams,
+  defaultDays = 7,
+  now = new Date(),
+): ValidationResult<DateRange> {
+  const errors: FieldErrors = {};
+  const from = parseOptionalDate(params, "from", errors) ?? todayInBelgrade(now);
+  const to = parseOptionalDate(params, "to", errors) ?? addDays(from, defaultDays - 1);
+  if (Object.keys(errors).length === 0) {
+    if (from > to) errors.from = "from ne sme biti posle to.";
+    else if (daysBetweenInclusive({ from, to }) > MAX_RANGE_DAYS) errors.from = "Opseg je predugačak (najviše 2 godine).";
+  }
+  return Object.keys(errors).length ? { ok: false, errors } : { ok: true, value: { from, to } };
+}
+
 export function parseStatuses(raw: string | null, errors: FieldErrors): OrderStatusKey[] | undefined {
   if (!raw) return undefined;
   const list = [...new Set(raw.split(",").map((s) => s.trim()).filter(Boolean))];

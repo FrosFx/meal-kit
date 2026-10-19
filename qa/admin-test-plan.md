@@ -96,7 +96,7 @@ Setup: create a known set of QA orders through the API, for example
 
 | ID | Check | Expected |
 |---|---|---|
-| N0 | Rule (decided): Nabavka counts only `NOVA` and `U_PRIPREMI`. Run order 1 = NOVA, order 2 = U_PRIPREMI, order 3 = OTKAZANO, plus order 4 (2 people, tacos) moved to a shipped/delivered status | only orders 1 and 2 counted |
+| N0 | Rule: team-lead said Nabavka counts only `NOVA` and `U_PRIPREMI`, but the later project note lists the statuses NOVA, POTVRDJENA, U_PRIPREMI, POSLATA, ISPORUCENA, OTKAZANA with "Nabavka counts the first three" (incl. POTVRDJENA). **Confirm with lead before running**; add a POTVRDJENA order to the fixture either way. Run order 1 = NOVA, order 2 = U_PRIPREMI, order 3 = OTKAZANO, plus order 4 (2 people, tacos) moved to a shipped/delivered status | only orders 1 and 2 counted |
 | N1 | Portions per recipe | rižoto 2+4 = 6, veggie 2+4 = 6, tacos 2 (order 1 only; orders 3 and 4 excluded) |
 | N2 | Ingredient/quantity totals (if per-ingredient) | = Σ(portions × quantity per portion); recompute in a script from the DB/API |
 | N3 | Revenue/cost totals on Nabavka and KPI | = Σ order totals of the counted statuses (order 1 4010 + order 2 (690+550)×4+350 = 5310 → 9320) |
