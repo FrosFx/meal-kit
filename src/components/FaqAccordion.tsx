@@ -1,40 +1,43 @@
 "use client";
-
-import { useState } from "react";
-
+import { useId, useState } from "react";
 export interface FaqItem {
   question: string;
   answer: string;
 }
-
 export default function FaqAccordion({ items }: { items: FaqItem[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-
+  const id = useId();
   return (
-    <div className="flex flex-col divide-y divide-black/10 overflow-hidden rounded-2xl border border-black/10 dark:divide-white/10 dark:border-white/10">
+    <div className="faq-list">
       {items.map((item, i) => {
         const open = openIndex === i;
         return (
-          <div key={item.question}>
-            <button
-              onClick={() => setOpenIndex(open ? null : i)}
-              aria-expanded={open}
-              className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
-            >
-              <span className="font-medium">{item.question}</span>
-              <span
-                className={`shrink-0 text-lg leading-none text-emerald-600 transition-transform ${
-                  open ? "rotate-45" : ""
-                }`}
+          <div className="faq-item" key={item.question}>
+            <h3>
+              <button
+                type="button"
+                id={`${id}-question-${i}`}
+                className="faq-question"
+                aria-expanded={open}
+                aria-controls={`${id}-answer-${i}`}
+                onClick={() => setOpenIndex(open ? null : i)}
               >
-                +
-              </span>
-            </button>
-            {open && (
-              <p className="px-5 pb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                {item.answer}
-              </p>
-            )}
+                <span>{item.question}</span>
+                <span aria-hidden="true">+</span>
+              </button>
+            </h3>
+            <div
+              id={`${id}-answer-${i}`}
+              className="faq-answer"
+              data-open={open}
+              role="region"
+              aria-labelledby={`${id}-question-${i}`}
+              inert={!open}
+            >
+              <div>
+                <p>{item.answer}</p>
+              </div>
+            </div>
           </div>
         );
       })}

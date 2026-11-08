@@ -1,13 +1,6 @@
 "use client";
-
-import { useEffect, useRef, useState, ReactNode } from "react";
-
-/**
- * Omotač koji "lenjo" otkriva sadržaj tek kad uđe u vidno polje (scroll
- * reveal), umesto da se sve animira odmah pri učitavanju stranice.
- * Poštuje "prefers-reduced-motion" -- tada se sadržaj odmah prikazuje bez
- * efekta.
- */
+import { useEffect, useRef, ReactNode } from "react";
+/** Progressive enhancement: content is visible with JavaScript disabled. */
 export default function Reveal({
   children,
   className = "",
@@ -18,38 +11,44 @@ export default function Reveal({
   delayMs?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
   useEffect(() => {
     const node = ref.current;
-    if (!node) return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setVisible(true);
+    if (!node || !("IntersectionObserver" in window)) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (motion.matches || node.getBoundingClientRect().top < window.innerHeight)
       return;
-    }
-
+    node.dataset.pending = "true";
+    const show = () => {
+      delete node.dataset.pending;
+    };
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisible(true);
+          show();
           observer.disconnect();
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0, rootMargin: "0px 0px -35px 0px" },
     );
+    const onMotion = () => {
+      if (motion.matches) {
+        show();
+        observer.disconnect();
+      }
+    };
     observer.observe(node);
-    return () => observer.disconnect();
+    motion.addEventListener("change", onMotion);
+    return () => {
+      observer.disconnect();
+      motion.removeEventListener("change", onMotion);
+      show();
+    };
   }, []);
-
   return (
     <div
       ref={ref}
-      style={{ transitionDelay: visible ? `${delayMs}ms` : "0ms" }}
-      className={`transition-all duration-700 ease-out ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-      } ${className}`}
+      className={`reveal ${className}`}
+      style={{ transitionDelay: `${delayMs}ms` }}
     >
       {children}
     </div>
