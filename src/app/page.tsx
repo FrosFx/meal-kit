@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { toAppRecipe } from "@/lib/recipeSerialization";
 import RecipeCard from "@/components/RecipeCard";
 import Reveal from "@/components/Reveal";
+import MealIllustration from "@/components/MealIllustration";
 
 // Stranica čita recepte direktno iz baze -- bez ovoga bi Next.js
 // "zamrzao" ove brojke u trenutku build-a umesto da ih osvežava pri
@@ -71,7 +72,7 @@ const faqItems = [
   {
     question: "Mogu li da promenim broj obroka ili osoba?",
     answer:
-      "Da, plan (broj osoba i broj obroka nedeljno) menjaš u svakom trenutku u sekciji \"Moja kutija\", pre nego što potvrdiš porudžbinu.",
+      'Da, plan (broj osoba i broj obroka nedeljno) menjaš u svakom trenutku u sekciji "Moja kutija", pre nego što potvrdiš porudžbinu.',
   },
   {
     question: "Ima li vegetarijanskih ili bezglutenskih opcija?",
@@ -96,7 +97,7 @@ export default async function Home() {
   const prices = recipes.map((r) => r.pricePerServing);
   const minPrice = prices.length ? Math.min(...prices) : null;
   const maxPrice = prices.length ? Math.max(...prices) : null;
-  const showcase = recipes.slice(0, 5);
+
   const preview = recipes.slice(0, 3);
 
   const stats = [
@@ -115,198 +116,285 @@ export default async function Home() {
       : null;
 
   return (
-    <div className="flex flex-col items-center">
-      <section className="w-full bg-gradient-to-b from-emerald-50 to-zinc-50 px-6 py-20 text-center dark:from-emerald-950/30 dark:to-black">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-emerald-600">
-          Sveži sastojci · Provereni recepti
-        </p>
-        <h1 className="mx-auto max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
-          Kuvaj kao profesionalac, bez odlaska u prodavnicu
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-zinc-600 dark:text-zinc-400">
-          Svake nedelje biraš obroke, mi ti šaljemo tačno izmerene sastojke i
-          jednostavne recepte — spremno za kuvanje za manje od 30 minuta.
-        </p>
-        <div className="mt-8 flex justify-center gap-4">
-          <Link
-            href="/meni"
-            className="rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-          >
-            Pogledaj nedeljni meni
-          </Link>
-          <Link
-            href="/kutija"
-            className="rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold transition-colors hover:bg-white dark:border-zinc-700 dark:hover:bg-white/10"
-          >
-            Moja kutija
-          </Link>
+    <div className="home-page">
+      <section className="hero section-shell">
+        <div className="hero-copy">
+          <p className="eyebrow hero-enter">
+            <span className="live-dot" /> SVEŽA NEDELJA. NOVI UKUSI.
+          </p>
+          <h1 className="hero-enter">
+            Manje planiranja.
+            <br />
+            Više <span className="serif-word">uživanja.</span>
+          </h1>
+          <p className="hero-description hero-enter">
+            Dobra hrana počinje tvojom kutijom. Ti biraš recepte, mi šaljemo
+            sveže sastojke. A najbolji deo? Kuvaš ti.
+          </p>
+          <div className="hero-actions hero-enter">
+            <Link href="/meni" className="button-primary">
+              Pronađi svoj sledeći obrok <span aria-hidden="true">↗</span>
+            </Link>
+            <a href="#kako-radi" className="text-link">
+              Kako funkcioniše <span aria-hidden="true">↓</span>
+            </a>
+          </div>
+          <div className="hero-note hero-enter">
+            <span aria-hidden="true">✓</span> Sveže namirnice{" "}
+            <span aria-hidden="true">·</span> Tvoj ritam{" "}
+            <span aria-hidden="true">·</span> Bez komplikovanja
+          </div>
         </div>
-
-        <div className="mx-auto mt-12 grid max-w-lg grid-cols-3 gap-4">
-          {stats.map((stat) => (
-            <div key={stat.label}>
-              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-                {stat.value}
-              </p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {stat.label}
-              </p>
+        <div className="hero-art">
+          <div className="orbit orbit-one" />
+          <div className="orbit orbit-two" />
+          <span className="art-spark spark-one" aria-hidden="true">
+            ✳
+          </span>
+          <span className="art-spark spark-two" aria-hidden="true">
+            ✳
+          </span>
+          <div className="hero-plate">
+            <MealIllustration />
+          </div>
+          <div className="floating-note note-top">
+            <span className="note-icon" aria-hidden="true">
+              ↗
+            </span>
+            <div>
+              Sveže ideje.
+              <br />
+              <strong>Još svežiji sastojci.</strong>
             </div>
+          </div>
+          <div className="floating-note note-bottom">
+            <span className="note-icon" aria-hidden="true">
+              ◷
+            </span>
+            <div>
+              Manje od <strong>30 min</strong>
+              <br />
+              <small>od kutije do tanjira</small>
+            </div>
+          </div>
+          <div className="round-stamp" aria-hidden="true">
+            MALO TRUDA
+            <br />
+            <span>mnogo</span>
+            <br />
+            DOBROG UKUSA
+          </div>
+          <span className="art-caption">DOBAR DAN POČINJE DOBRIM OBROKOM.</span>
+        </div>
+      </section>
+      <div className="promise-strip">
+        <span>Ti biraš. Mi pripremamo.</span>
+        <span aria-hidden="true">✳</span>
+        <span>Sveže do tvojih vrata.</span>
+        <span aria-hidden="true">✳</span>
+        <span>Svaki zalogaj se računa.</span>
+        <span aria-hidden="true">✳</span>
+      </div>
+
+      <section id="kako-radi" className="section-shell section-space">
+        <Reveal className="section-heading">
+          <div>
+            <p className="eyebrow">OD KUTIJE DO TANJIRA</p>
+            <h2>
+              Dobar obrok.
+              <br />
+              <span className="serif-word">Tri jednostavna koraka.</span>
+            </h2>
+          </div>
+          <p>
+            Bez liste za kupovinu i večitog pitanja „šta danas kuvamo?“. Samo ti
+            i nešto ukusno.
+          </p>
+        </Reveal>
+        <div className="steps-grid">
+          {steps.map((step, i) => (
+            <Reveal key={step.title} delayMs={i * 100} className="step">
+              <div className="step-top">
+                <span className="step-number">0{i + 1}</span>
+                <span className="step-icon" aria-hidden="true">
+                  {step.emoji}
+                </span>
+              </div>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </Reveal>
           ))}
         </div>
-
-        {showcase.length > 0 && (
-          <div className="mx-auto mt-10 flex max-w-xl flex-wrap items-center justify-center gap-3">
-            {showcase.map((r) => (
-              <div
-                key={r.id}
-                className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br text-2xl shadow-sm ${r.color}`}
-                title={r.name}
-              >
-                {r.emoji}
-              </div>
-            ))}
-            <Link
-              href="/meni"
-              className="text-sm font-medium text-emerald-700 underline underline-offset-2 dark:text-emerald-400"
-            >
-              i još...
-            </Link>
-          </div>
-        )}
-      </section>
-
-      <section className="grid w-full max-w-5xl grid-cols-1 gap-8 px-6 py-16 sm:grid-cols-3">
-        {steps.map((step) => (
-          <div key={step.title} className="text-center">
-            <div className="mb-3 text-4xl">{step.emoji}</div>
-            <h2 className="mb-1 font-semibold">{step.title}</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {step.text}
-            </p>
-          </div>
-        ))}
       </section>
 
       {preview.length > 0 && (
-        <Reveal className="w-full max-w-5xl px-6 py-16">
-          <div className="mb-8 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">
-                Ova nedelja
-              </p>
-              <h2 className="text-2xl font-bold">Iz nedeljnog menija</h2>
+        <section className="menu-section">
+          <div className="section-shell section-space">
+            <Reveal className="section-heading">
+              <div>
+                <p className="eyebrow">SVEŽE NA MENIJU</p>
+                <h2>
+                  Tvoja nedelja,
+                  <br />
+                  <span className="serif-word">sa više ukusa.</span>
+                </h2>
+              </div>
+              <Link href="/meni" className="button-outline">
+                Istraži ceo meni <span aria-hidden="true">↗</span>
+              </Link>
+            </Reveal>
+            <div className="recipe-grid">
+              {preview.map((recipe, i) => (
+                <Reveal key={recipe.id} delayMs={i * 100}>
+                  <RecipeCard recipe={recipe} />
+                </Reveal>
+              ))}
             </div>
-            <Link
-              href="/meni"
-              className="hidden shrink-0 text-sm font-medium text-emerald-700 underline underline-offset-2 sm:inline dark:text-emerald-400"
-            >
-              Ceo meni →
-            </Link>
+            <div className="menu-footnote">
+              <span>Svake nedelje nova inspiracija za tvoj sto.</span>
+              <span>{recipes.length} recepata za istraživanje ↗</span>
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {preview.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
-            ))}
-          </div>
-          <Link
-            href="/meni"
-            className="mt-6 block text-center text-sm font-medium text-emerald-700 underline underline-offset-2 sm:hidden dark:text-emerald-400"
-          >
-            Ceo meni →
-          </Link>
-        </Reveal>
+        </section>
       )}
 
-      <Reveal className="w-full bg-white px-6 py-16 dark:bg-zinc-950">
-        <div className="mx-auto max-w-5xl">
-          <p className="mb-2 text-center text-sm font-semibold uppercase tracking-wide text-emerald-600">
-            Zašto KutijaObroka
-          </p>
-          <h2 className="mb-10 text-center text-2xl font-bold">
-            Kuvanje bez glavobolje oko planiranja
-          </h2>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="section-shell section-space">
+        <Reveal className="benefit-panel">
+          <div className="benefit-intro">
+            <p className="eyebrow">MANJE OBAVEZA, VIŠE ŽIVOTA</p>
+            <h2>
+              Vratimo uživanje
+              <br />u <span className="serif-word">kuhinju.</span>
+            </h2>
+            <p>
+              Za večere u dvoje, porodični sto i one dane kada ti treba jedna
+              obaveza manje.
+            </p>
+            <Link href="/meni" className="button-lime">
+              Šta se danas kuva? <span aria-hidden="true">↗</span>
+            </Link>
+            <span className="benefit-star" aria-hidden="true">
+              ✳
+            </span>
+          </div>
+          <div className="benefit-list">
             {benefits.map((b) => (
-              <div key={b.title} className="text-center">
-                <div className="mb-3 text-3xl">{b.emoji}</div>
-                <h3 className="mb-1 font-semibold">{b.title}</h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {b.text}
-                </p>
+              <div key={b.title}>
+                <span aria-hidden="true">{b.emoji}</span>
+                <div>
+                  <h3>{b.title}</h3>
+                  <p>{b.text}</p>
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      </Reveal>
+        </Reveal>
+        <Reveal className="stats-row">
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </div>
+          ))}
+        </Reveal>
+      </section>
 
       {minPrice !== null && maxPrice !== null && (
-        <Reveal className="w-full max-w-3xl px-6 py-16">
-          <p className="mb-2 text-center text-sm font-semibold uppercase tracking-wide text-emerald-600">
-            Okvirna cena
-          </p>
-          <h2 className="mb-8 text-center text-2xl font-bold">
-            Plaćaš samo ono što izabereš
-          </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {([2, 4] as const).map((people) => {
-              const estimate = weeklyEstimate(people);
-              return (
-                <div
-                  key={people}
-                  className="rounded-2xl border border-black/10 p-6 text-center dark:border-white/10"
-                >
-                  <p className="text-sm text-zinc-500">{people} osobe</p>
-                  <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-                    {estimate ? `${estimate.low}–${estimate.high} RSD` : "—"}
-                  </p>
-                  <p className="text-xs text-zinc-500">
-                    nedeljno · 3 obroka · dostava uključena
-                  </p>
-                </div>
-              );
-            })}
+        <section className="plan-section">
+          <div className="section-shell section-space">
+            <Reveal className="section-heading">
+              <div>
+                <p className="eyebrow">TVOJA KUTIJA. TVOJA PRAVILA.</p>
+                <h2>
+                  Za tvoj sto.
+                  <br />
+                  <span className="serif-word">I tvoj apetit.</span>
+                </h2>
+              </div>
+              <p>
+                Izaberi društvo, pa obroke. Tačan iznos zavisi od recepata koje
+                dodaš u kutiju.
+              </p>
+            </Reveal>
+            <div className="plans-grid">
+              {([2, 4] as const).map((people, i) => {
+                const estimate = weeklyEstimate(people);
+                return (
+                  <Reveal
+                    key={people}
+                    delayMs={i * 100}
+                    className={`plan-card ${i === 1 ? "plan-featured" : ""}`}
+                  >
+                    <div className="plan-top">
+                      <span className="eyebrow">
+                        {people === 2 ? "ZA VAS DVOJE" : "ZA CEO STO"}
+                      </span>
+                      <span aria-hidden="true">{people === 2 ? "◒" : "✳"}</span>
+                    </div>
+                    <h3>
+                      {people} osobe<span> · 3 obroka</span>
+                    </h3>
+                    <p className="plan-price">
+                      {estimate
+                        ? `${estimate.low.toLocaleString("sr-RS")}–${estimate.high.toLocaleString("sr-RS")}`
+                        : "—"}{" "}
+                      <small>RSD</small>
+                    </p>
+                    <p className="plan-description">
+                      Okvirno nedeljno, sa uključenom dostavom.
+                    </p>
+                    <Link
+                      href="/kutija"
+                      className={i === 1 ? "button-lime" : "button-primary"}
+                    >
+                      Sastavi svoju kutiju <span aria-hidden="true">↗</span>
+                    </Link>
+                  </Reveal>
+                );
+              })}
+            </div>
+            <p className="price-note">
+              Procena na osnovu trenutnog menija. Konačnu cenu vidiš pre potvrde
+              porudžbine.
+            </p>
           </div>
-          <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
-            Okvirno, na osnovu trenutnog menija — tačnu cenu vidiš pri
-            sklapanju kutije.
-          </p>
-          <div className="mt-6 text-center">
-            <Link
-              href="/kutija"
-              className="rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-            >
-              Sastavi svoju kutiju
-            </Link>
-          </div>
-        </Reveal>
+        </section>
       )}
 
-      <Reveal className="w-full bg-white px-6 py-16 dark:bg-zinc-950">
-        <div className="mx-auto max-w-2xl">
-          <p className="mb-2 text-center text-sm font-semibold uppercase tracking-wide text-emerald-600">
-            Pitanja
-          </p>
-          <h2 className="mb-8 text-center text-2xl font-bold">
-            Najčešća pitanja
+      <section className="section-shell section-space faq-section">
+        <Reveal>
+          <p className="eyebrow">JOŠ NEŠTO TE ZANIMA?</p>
+          <h2>
+            Dobra pitanja.
+            <br />
+            <span className="serif-word">Jasni odgovori.</span>
           </h2>
+          <p className="faq-intro">
+            Sve što treba da znaš pre nego što prva kutija stigne do tvojih
+            vrata.
+          </p>
+        </Reveal>
+        <Reveal>
           <FaqAccordion items={faqItems} />
-        </div>
-      </Reveal>
-
-      <Reveal className="w-full px-6 py-20 text-center">
-        <h2 className="mb-3 text-2xl font-bold">Spreman/na da probaš?</h2>
-        <p className="mx-auto mb-6 max-w-md text-zinc-600 dark:text-zinc-400">
-          Pogledaj nedeljni meni i sastavi svoju prvu kutiju za manje od dva
-          minuta.
-        </p>
-        <Link
-          href="/meni"
-          className="rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-        >
-          Pogledaj nedeljni meni
-        </Link>
-      </Reveal>
+        </Reveal>
+      </section>
+      <section className="section-shell final-section">
+        <Reveal className="final-cta">
+          <span className="cta-star" aria-hidden="true">
+            ✳
+          </span>
+          <p className="eyebrow">VEČERAS KUVAMO NEŠTO DOBRO.</p>
+          <h2>
+            Tvoj sledeći omiljeni obrok
+            <br />
+            je u <span className="serif-word">ovoj kutiji.</span>
+          </h2>
+          <Link href="/meni" className="button-primary">
+            Hajde da kuvamo <span aria-hidden="true">↗</span>
+          </Link>
+          <p>Sveži sastojci. Jednostavni recepti. Tvoje malo remek-delo.</p>
+        </Reveal>
+      </section>
     </div>
   );
 }

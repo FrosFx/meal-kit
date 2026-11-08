@@ -1,53 +1,89 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { useBox } from "@/context/BoxContext";
-
-const links = [
-  { href: "/", label: "Početna" },
-  { href: "/meni", label: "Nedeljni meni" },
-  { href: "/kutija", label: "Moja kutija" },
-];
 
 export default function Navbar() {
   const pathname = usePathname();
   const { selectedRecipes } = useBox();
-
+  const [open, setOpen] = useState(false);
+  const links = [
+    { href: "/", label: "Početna" },
+    { href: "/meni", label: "Nedeljni meni" },
+    { href: "/#kako-radi", label: "Kako funkcioniše" },
+  ];
   return (
-    <header className="sticky top-0 z-10 border-b border-black/10 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-black/90">
-      <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span>🍲</span>
-          <span>KutijaObroka</span>
+    <header className="site-header">
+      <nav className="nav-shell" aria-label="Glavna navigacija">
+        <Link href="/" className="brand" onClick={() => setOpen(false)}>
+          <span className="brand-mark" aria-hidden="true">
+            ✳
+          </span>
+          KutijaObroka<span className="sr-only"> — početna</span>
         </Link>
-        <div className="flex items-center gap-6 text-sm font-medium">
+        <div className="desktop-nav">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`transition-colors hover:text-emerald-600 ${
-                pathname === link.href
-                  ? "text-emerald-600"
-                  : "text-zinc-600 dark:text-zinc-300"
-              }`}
+              className="nav-link"
+              aria-current={pathname === link.href ? "page" : undefined}
             >
-              {link.label === "Moja kutija" ? (
-                <span className="inline-flex items-center gap-1.5">
-                  {link.label}
-                  {selectedRecipes.length > 0 && (
-                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-xs font-semibold text-white">
-                      {selectedRecipes.length}
-                    </span>
-                  )}
-                </span>
-              ) : (
-                link.label
-              )}
+              {link.label}
             </Link>
           ))}
         </div>
+        <Link
+          href="/kutija"
+          className="nav-box"
+          onClick={() => setOpen(false)}
+          aria-current={pathname === "/kutija" ? "page" : undefined}
+        >
+          <span aria-hidden="true">▣</span> Moja kutija{" "}
+          <span
+            key={selectedRecipes.length}
+            className="box-count"
+            aria-label={`${selectedRecipes.length} izabranih obroka`}
+          >
+            {selectedRecipes.length}
+          </span>
+        </Link>
+        <button
+          type="button"
+          className="mobile-toggle"
+          aria-label={open ? "Zatvori navigaciju" : "Otvori navigaciju"}
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
+          onClick={() => setOpen(!open)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setOpen(false);
+          }}
+        >
+          {open ? "×" : "☰"}
+        </button>
       </nav>
+      {open && (
+        <nav
+          id="mobile-navigation"
+          className="mobile-nav"
+          aria-label="Mobilna navigacija"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setOpen(false);
+          }}
+        >
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={pathname === link.href ? "page" : undefined}
+              onClick={() => setOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

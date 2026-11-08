@@ -18,7 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "KutijaObroka — meal-kit dostava",
-  description: "Prototip aplikacije za dostavu obroka po uzoru na HelloFresh.",
+  description:
+    "Sveži sastojci, jednostavni recepti i više uživanja. Izaberi nedeljni meni i sastavi svoju kutiju obroka.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -27,11 +28,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="sr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-black">
+      <body className="min-h-full flex flex-col">
+        <a href="#main-content" className="skip-link">
+          Preskoči na sadržaj
+        </a>
         <RecipeProvider>
           <BoxProvider>
             <Navbar />
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
             <Footer />
           </BoxProvider>
         </RecipeProvider>

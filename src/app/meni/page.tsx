@@ -16,13 +16,16 @@ export default function MeniPage() {
   const filtered = useMemo(
     () =>
       activeTag ? recipes.filter((r) => r.tags.includes(activeTag)) : recipes,
-    [activeTag, recipes]
+    [activeTag, recipes],
   );
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="storefront-menu section-shell py-12 sm:py-16">
       <div className="mb-6 flex flex-col gap-2">
-        <h1 className="text-2xl font-bold">Nedeljni meni</h1>
+        <p className="eyebrow mb-3">DOBRODOŠAO ZA STO</p>
+        <h1 className="menu-title">
+          Šta se ove nedelje <span className="serif-word">kuva?</span>
+        </h1>
         <p className="text-zinc-600 dark:text-zinc-400">
           Izaberi obroke za ovu nedelju. Tvoj plan: {plan.people} osobe,{" "}
           {plan.mealsPerWeek} obroka nedeljno.
@@ -31,6 +34,7 @@ export default function MeniPage() {
 
       <div className="mb-6 flex flex-wrap gap-2">
         <button
+          aria-pressed={activeTag === null}
           onClick={() => setActiveTag(null)}
           className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             activeTag === null
@@ -43,6 +47,7 @@ export default function MeniPage() {
         {ALL_TAGS.map((tag) => (
           <button
             key={tag}
+            aria-pressed={activeTag === tag}
             onClick={() => setActiveTag(tag === activeTag ? null : tag)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
               activeTag === tag
